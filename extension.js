@@ -4,8 +4,8 @@ const vscode = require('vscode');
 const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
-	organization: "org-pgiAijovDjEKtXXWqSqCy8pu",
-	apiKey: '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',
+	organization: "",
+	apiKey: '',
 });
 const openai = new OpenAIApi(configuration);
 
