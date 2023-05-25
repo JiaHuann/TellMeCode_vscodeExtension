@@ -5,7 +5,7 @@ const { Configuration, OpenAIApi } = require("openai");
 const { Selection } = require('vscode');
 const dotenv = require("dotenv").config({ path: __dirname + '/.env' })
 
-console.log(process.env.OPENAI_ORG)
+//console.log(process.env.OPENAI_ORG)
 
 let disposable;
 let configuration, openai;
@@ -47,24 +47,22 @@ const prompt = "你是一个叫TellMeCode的机器人，请你结合我发送的
  * @param {vscode.ExtensionContext} context
  */
 async function activate(context) {
-	if (!process.env.OPENAI_ORG || !process.env.OPENAI_KEY) {
-		if (!process.env.OPENAI_ORG) {
-			process.env.OPENAI_ORG = await vscode.window.showInputBox({
-				prompt: 'Input Your OWN OPANAI_ORG code',
-			});
-		} else {
-			process.env.OPENAI_KEY = await vscode.window.showInputBox({
-				prompt: 'Input Your OWN OPANAI_Token',
-			});
-		}
-
-
-		GPTConfigure()
-
-	}
+	// if (!process.env.OPENAI_ORG || !process.env.OPENAI_KEY) {
+	// 	if (!process.env.OPENAI_ORG) {
+	// 		process.env.OPENAI_ORG = await vscode.window.showInputBox({
+	// 			prompt: 'Input Your OWN OPANAI_ORG code',
+	// 		});
+	// 	} else {
+	// 		process.env.OPENAI_KEY = await vscode.window.showInputBox({
+	// 			prompt: 'Input Your OWN OPANAI_Token',
+	// 		});
+	// 	}
+	// }
+	
+	//console.log(process.env.OPENAI_ORG,process.env.OPENAI_KEY)
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "jiahuan-test" is now active!');
+	//console.log('Congratulations, your extension "jiahuan-test" is now active!');
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
@@ -75,14 +73,14 @@ async function activate(context) {
 			vscode.window.showInformationMessage("不要一次提交太多请求喵呜！");
 			return;
 		}
-
+		GPTConfigure();
 		const editor = vscode.window.activeTextEditor;
 		const selection = editor.selection;
 		let Text = ""
 		//获取 选中代码相对于项目文件夹路径（包含）
 		try {
 
-			
+
 			// 获取当前选中文本所在文件的路径
 			const selectedFilePath = editor.document.fileName;
 
@@ -110,7 +108,7 @@ async function activate(context) {
 			// 创建一个信息提示框，显示包含项目目录名称的当前选中文本所在文件的相对路径
 			vscode.window.showInformationMessage(`The selected file path is ${FolderName}\\${relativeFilePath}`);
 		} catch (error) {
-			console.log("An error occurred: ", error.message);
+			//console.log("An error occurred: ", error.message);
 		}
 
 
@@ -118,7 +116,7 @@ async function activate(context) {
 		const start = selection.start;
 		const end = selection.end;
 		const selectedText = editor.document.getText(new vscode.Range(start, end));
-		console.log(selectedText);
+		//console.log(selectedText);
 		if (!selectedText) {
 			vscode.window.showInformationMessage("选中文本为空！");
 			return;
@@ -145,18 +143,32 @@ async function activate(context) {
 			vscode.window.showInformationMessage('生成完毕！');
 		} catch (error) {
 			if (error.response) {
-				console.log(error.response.data.error);
+				//console.log(error.response.data.error);
 				vscode.window.showInformationMessage('api返回报错:[' + error.response.data.error.type + ']' + error.response.data.error.message);
 
 			} else {
-				console.log(error.response.data.error);
+				//console.log(error.response.data.error);
 
 			}
 		}
 		busy = 0;
 	});
 
+	let set_apitoken = vscode.commands.registerCommand('TellMeCode.set-apitoken', async function () {
+		process.env.OPENAI_KEY = await vscode.window.showInputBox({
+			prompt: 'Input Your OWN OPANAI_Token',
+		});
+	})
+
+	let set_orgtoken = vscode.commands.registerCommand('TellMeCode.set-orgCode', async function () {
+		process.env.OPENAI_ORG = await vscode.window.showInputBox({
+			prompt: 'Input Your OWN OPANAI_ORG code',
+		});
+	})
+
 	context.subscriptions.push(disposable);
+	context.subscriptions.push(set_apitoken);
+	context.subscriptions.push(set_orgtoken);
 }
 
 // This method is called when your extension is deactivated

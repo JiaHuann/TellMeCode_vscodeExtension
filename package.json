@@ -3,9 +3,12 @@
   "displayName": "TellMeCode",
   "description": "Based on OPENAI api,Combining various factors such as the current programming environment to assist in the analysis and speculation of the source code",
   "version": "0.0.1",
+  "repository":"https://github.com/JiaHuann/TellMeCode_vscodeExtension",
   "engines": {
-    "vscode": "^1.70.0"
+    "vscode": "^1.78.0"
   },
+  "icon": "./icon.png",
+  "publisher": "LiujiaHuan13",
   "categories": [
     "Other"
   ],
@@ -16,6 +19,14 @@
       {
         "command": "TellMeCode.helloWorld",
         "title": "TellMeCode"
+      },
+      {
+        "command": "TellMeCode.set-apitoken",
+        "title": "TellMeCode-set-APItoken"
+      },
+      {
+        "command": "TellMeCode.set-orgCode",
+        "title": "TellMeCode-set-orgCode"
       }
     ],
     "keybindings": [
