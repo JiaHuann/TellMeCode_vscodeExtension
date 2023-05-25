@@ -127,7 +127,7 @@ async function activate(context) {
 
 		//发送请求
 		try {
-			console.log(Test);
+			//console.log(Text);
 			registerHoverProvider("Loading...稍等片刻喵~", selection);
 			busy = 1;
 			const completion = await openai.createChatCompletion({
