@@ -7,7 +7,7 @@
   "engines": {
     "vscode": "^1.78.0"
   },
-  "icon": "./icon.png",
+  "icon": "icon.png",
   "publisher": "LiujiaHuan13",
   "categories": [
     "Other"
