@@ -1,10 +1,10 @@
 {
-  "name": "jiahuan-test",
-  "displayName": "jiahuan-test",
-  "description": "",
+  "name": "TellMeCode",
+  "displayName": "TellMeCode",
+  "description": "Based on OPENAI api,Combining various factors such as the current programming environment to assist in the analysis and speculation of the source code",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.78.0"
+    "vscode": "^1.70.0"
   },
   "categories": [
     "Other"
@@ -14,13 +14,13 @@
   "contributes": {
     "commands": [
       {
-        "command": "jiahuan-test.helloWorld",
+        "command": "TellMeCode.helloWorld",
         "title": "TellMeCode"
       }
     ],
     "keybindings": [
       {
-        "command": "jiahuan-test.helloWorld",
+        "command": "TellMeCode.helloWorld",
         "key": "ctrl+shift+t",
         "mac": "cmd+shift+t",
         "when": "editorTextFocus"

@@ -6,27 +6,33 @@ const { Selection } = require('vscode');
 const dotenv = require("dotenv").config({ path: __dirname + '/.env' })
 
 console.log(process.env.OPENAI_ORG)
-const configuration = new Configuration({
-	organization: process.env.OPENAI_ORG,
-	apiKey: process.env.OPENAI_KEY,
-});
-const openai = new OpenAIApi(configuration);
 
 let disposable;
+let configuration, openai;
 
-function registerHoverProvider(textt,selection) {
-  if (disposable) {
-    disposable.dispose();
-  }
+function GPTConfigure() {
+	configuration = new Configuration({
+		organization: process.env.OPENAI_ORG,
+		apiKey: process.env.OPENAI_KEY,
+	});
 
-  disposable = vscode.languages.registerHoverProvider('*', {
-    provideHover(document, position, token) {
-      const range = new vscode.Range(selection.start, selection.end);
-      const text = textt;
+	openai = new OpenAIApi(configuration);
 
-      return new vscode.Hover(text);
-    }
-  });
+}
+
+function registerHoverProvider(textt, selection) {
+	if (disposable) {
+		disposable.dispose();
+	}
+
+	disposable = vscode.languages.registerHoverProvider('*', {
+		provideHover(document, position, token) {
+			const range = new vscode.Range(selection.start, selection.end);
+			const text = textt;
+
+			return new vscode.Hover(text);
+		}
+	});
 }
 
 var busy = 0;
@@ -40,8 +46,22 @@ const prompt = "你是一个叫TellMeCode的机器人，请你结合我发送的
 /**
  * @param {vscode.ExtensionContext} context
  */
-function activate(context) {
+async function activate(context) {
+	if (!process.env.OPENAI_ORG || !process.env.OPENAI_KEY) {
+		if (!process.env.OPENAI_ORG) {
+			process.env.OPENAI_ORG = await vscode.window.showInputBox({
+				prompt: 'Input Your OWN OPANAI_ORG code',
+			});
+		} else {
+			process.env.OPENAI_KEY = await vscode.window.showInputBox({
+				prompt: 'Input Your OWN OPANAI_Token',
+			});
+		}
 
+
+		GPTConfigure()
+
+	}
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "jiahuan-test" is now active!');
@@ -49,20 +69,20 @@ function activate(context) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('jiahuan-test.helloWorld', async function () {
-		
-		if(busy){
+	let disposable = vscode.commands.registerCommand('TellMeCode.helloWorld', async function () {
+
+		if (busy) {
 			vscode.window.showInformationMessage("不要一次提交太多请求喵呜！");
 			return;
 		}
-		
+
 		const editor = vscode.window.activeTextEditor;
 		const selection = editor.selection;
-		var FolderName = "";
-		var relativeFilePath = "";
+		let Text = ""
+		//获取 选中代码相对于项目文件夹路径（包含）
 		try {
 
-			var Test = ""
+			
 			// 获取当前选中文本所在文件的路径
 			const selectedFilePath = editor.document.fileName;
 
@@ -71,11 +91,11 @@ function activate(context) {
 			//console.log(workspaceFolderPath);
 
 			// 提取当前工作区的根文件夹名称
-			FolderName = workspaceFolderPath ? workspaceFolderPath.split('\\').pop() : "";
+			var FolderName = workspaceFolderPath ? workspaceFolderPath.split('\\').pop() : "";
 			//console.log(FolderName)
 
 			// 提取当前选中文本所在文件的相对路径
-			relativeFilePath = selectedFilePath.replace(workspaceFolderPath, "");
+			var relativeFilePath = selectedFilePath.replace(workspaceFolderPath, "");
 
 			// 去掉相对路径前面的斜杠,否则拼接的时候会错误的解释relativeFilePath
 			if (relativeFilePath.startsWith("/") || relativeFilePath.startsWith("\\")) {
@@ -94,42 +114,46 @@ function activate(context) {
 		}
 
 
-
-		if (editor) {
-			const start = selection.start;
-			const end = selection.end;
-			const selectedText = editor.document.getText(new vscode.Range(start, end));
-			console.log(selectedText);
-			Test = selectedText;
+		//获取 选中代码文本
+		const start = selection.start;
+		const end = selection.end;
+		const selectedText = editor.document.getText(new vscode.Range(start, end));
+		console.log(selectedText);
+		if (!selectedText) {
+			vscode.window.showInformationMessage("选中文本为空！");
+			return;
 		}
+		Text = selectedText;
 
-
+		//发送请求
 		try {
-			console.log(Test)
-			registerHoverProvider("正在加载中Loading---",selection);
+			console.log(Test);
+			registerHoverProvider("Loading...稍等片刻喵~", selection);
 			busy = 1;
 			const completion = await openai.createChatCompletion({
 				model: "gpt-3.5-turbo",
 				max_tokens: 1000,
 				messages: [
 					{ "role": "system", "content": `${prompt}` },
-					{ "role": "user", "content": "这段代码的路径是"+`${FolderName}\\${relativeFilePath}`+"代码如下:"+`${Test}` }
+					{ "role": "user", "content": "这段代码的路径是" + `${FolderName}\\${relativeFilePath}` + "代码如下:" + `${Text}` }
 				]
 			});
-			
-			console.log(completion.data.choices[0].message.content);
 
-			registerHoverProvider(completion.data.choices[0].message.content,selection);
-			busy = 0;
+			//console.log(completion.data.choices[0].message.content);
+
+			registerHoverProvider(completion.data.choices[0].message.content, selection);
+			vscode.window.showInformationMessage('生成完毕！');
 		} catch (error) {
 			if (error.response) {
-				console.log(error.response.status);
-				console.log(error.response.data);
-				registerHoverProvider(error.response.data.error + error.response.data.error);
+				console.log(error.response.data.error);
+				vscode.window.showInformationMessage('api返回报错:[' + error.response.data.error.type + ']' + error.response.data.error.message);
+
 			} else {
-				console.log(error.message);
+				console.log(error.response.data.error);
+
 			}
 		}
+		busy = 0;
 	});
 
 	context.subscriptions.push(disposable);
