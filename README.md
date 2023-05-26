@@ -26,6 +26,8 @@
 
 > ps:需要科学上网，由于暂时不支持流式传输，且依赖openai，所以生成比较慢，如果在五行代码以上可能会长达20秒。
 
+![image](https://github.com/JiaHuann/JiaHuann/blob/main/tmc.gif)
+
 ## 0x03 测试：
 欢迎contribute和commit，或者反馈bug等等。测试阶段，如果你懒得弄token，可以联系我，免费提供测试使用。
 
