@@ -2,7 +2,7 @@
   "name": "TellMeCode",
   "displayName": "TellMeCode",
   "description": "Based on OPENAI api,Combining various factors such as the current programming environment to assist in the analysis and speculation of the source code",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "repository": "https://github.com/JiaHuann/TellMeCode_vscodeExtension",
   "engines": {
     "vscode": "^1.78.0"
