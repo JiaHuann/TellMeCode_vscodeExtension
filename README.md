@@ -17,7 +17,11 @@
 [![p9beAsJ.png](https://s1.ax1x.com/2023/05/25/p9beAsJ.png)](https://imgse.com/i/p9beAsJ)
 
 ## 0x01 初始化
-`ctrl+shift+p`调出vscode下拉选项命令行，分别在`TellMeCode-set-APItoken`和`TellMeCode-set-orgCode`中输入对应的token和code，就可以正常使用了
+`ctrl+shift+p`调出vscode下拉选项命令行，分别在
+- `TellMeCode-set-APItoken`
+- `TellMeCode-set-orgCode`
+
+中输入对应的token和code，就可以正常使用了.
 
 ## 0x02 使用方式
 1. 光标选中你要分析的代码块或某几行，按`ctrl+shift+t`触发，鼠标再次放在选中行上会看到hover提示正在加载。
