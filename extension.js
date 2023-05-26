@@ -7,6 +7,7 @@ const { Configuration, OpenAIApi } = require("openai");
 let disposable;
 let configuration, openai;
 
+//配置GPT
 function GPTConfigure(orgCode, apiToken) {
 	configuration = new Configuration({
 		organization: orgCode,
@@ -17,6 +18,7 @@ function GPTConfigure(orgCode, apiToken) {
 
 }
 
+//生成Hover面板 聚焦文字显示
 function registerHoverProvider(textt, selection) {
 	if (disposable) {
 		disposable.dispose();
@@ -32,6 +34,7 @@ function registerHoverProvider(textt, selection) {
 	});
 }
 
+//一次只能提交一个
 var busy = 0;
 const prompt = "你是一个叫TellMeCode的机器人,请你结合我发送的代码路径,分析我给你发的具体的代码,以这样的格式输出:整体作用:xxxxxx(换行),[1](输出第一行具体代码原文):作用是xxx(换行),[2](输出第二行具体代码原文):作用是xxx(换行),以此类推，注意结合目录路径去推测分析这段代码在整个项目中的作用，注意输出格式，注意序号后面首先跟每一行代码内容然后再输出作用，不要有任何别的东西，另外如果你发现了这是资料很多的知名项目，请在最后输出这段代码在整个项目里的作用，如果你确定的话。";
 
@@ -50,7 +53,6 @@ async function activate(context) {
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
 	let disposable = vscode.commands.registerCommand('TellMeCode.helloWorld', async function () {
-
 		if (busy) {
 			vscode.window.showInformationMessage("不要一次提交太多请求喵呜！");
 			return;
@@ -58,18 +60,16 @@ async function activate(context) {
 
 		const apiToken = context.globalState.get('apiToken');
 		const orgCode = context.globalState.get('orgCode');
-
-		
-		//console.log(1111,apiToken, orgCode);
 		GPTConfigure(orgCode,apiToken);
+
 
 		const editor = vscode.window.activeTextEditor;
 		const selection = editor.selection;
 		let Text = ""
+
+		
 		//获取 选中代码相对于项目文件夹路径（包含）
 		try {
-
-
 			// 获取当前选中文本所在文件的路径
 			const selectedFilePath = editor.document.fileName;
 
@@ -149,6 +149,7 @@ async function activate(context) {
 		busy = 0;
 	});
 
+	//设置apiToken
 	let set_apitoken = vscode.commands.registerCommand('TellMeCode.set-apitoken', async function () {
 		var apiToken = await vscode.window.showInputBox({
 			prompt: 'Input Your OWN OPANAI_Token',
@@ -156,6 +157,7 @@ async function activate(context) {
 		context.globalState.update('apiToken', apiToken);
 	})
 
+	//设置orgCode
 	let set_orgtoken = vscode.commands.registerCommand('TellMeCode.set-orgCode', async function () {
 		var orgCode = await vscode.window.showInputBox({
 			prompt: 'Input Your OWN OPANAI_ORG code',
