@@ -2,9 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
 const { Configuration, OpenAIApi } = require("openai");
-const dotenv = require("dotenv").config({ path: __dirname + '/.env' })
 
-//console.log(process.env.OPENAI_ORG)
 
 let disposable;
 let configuration, openai;
@@ -46,22 +44,7 @@ const prompt = "你是一个叫TellMeCode的机器人,请你结合我发送的�
  * @param {vscode.ExtensionContext} context
  */
 async function activate(context) {
-	// if (!process.env.OPENAI_ORG || !process.env.OPENAI_KEY) {
-	// 	if (!process.env.OPENAI_ORG) {
-	// 		process.env.OPENAI_ORG = await vscode.window.showInputBox({
-	// 			prompt: 'Input Your OWN OPANAI_ORG code',
-	// 		});
-	// 	} else {
-	// 		process.env.OPENAI_KEY = await vscode.window.showInputBox({
-	// 			prompt: 'Input Your OWN OPANAI_Token',
-	// 		});
-	// 	}
-	// }
-	
-	//console.log(process.env.OPENAI_ORG,process.env.OPENAI_KEY)
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	//console.log('Congratulations, your extension "jiahuan-test" is now active!');
+
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
