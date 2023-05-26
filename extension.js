@@ -2,7 +2,6 @@
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
 const { Configuration, OpenAIApi } = require("openai");
-const { Selection } = require('vscode');
 const dotenv = require("dotenv").config({ path: __dirname + '/.env' })
 
 //console.log(process.env.OPENAI_ORG)
@@ -10,10 +9,10 @@ const dotenv = require("dotenv").config({ path: __dirname + '/.env' })
 let disposable;
 let configuration, openai;
 
-function GPTConfigure() {
+function GPTConfigure(orgCode, apiToken) {
 	configuration = new Configuration({
-		organization: process.env.OPENAI_ORG,
-		apiKey: process.env.OPENAI_KEY,
+		organization: orgCode,
+		apiKey: apiToken,
 	});
 
 	openai = new OpenAIApi(configuration);
@@ -36,7 +35,7 @@ function registerHoverProvider(textt, selection) {
 }
 
 var busy = 0;
-const prompt = "你是一个叫TellMeCode的机器人，请你结合我发送的代码路径，分析我给你发的具体的代码，以这样的格式输出：整体作用：xxxxxx（换行），[1]（输出第一行具体代码原文）：作用是xxx（换行），[2]（输出第二行具体代码原文）：作用是xxx（换行），以此类推，注意结合目录路径去推测分析这段代码在整个项目中的作用，注意输出格式，注意序号后面首先跟每一行代码内容然后再输出作用，不要有任何别的东西，另外如果你发现了这是资料很多的知名项目，请在最后输出这段代码在整个项目里的作用，如果你确定的话。";
+const prompt = "你是一个叫TellMeCode的机器人,请你结合我发送的代码路径,分析我给你发的具体的代码,以这样的格式输出:整体作用:xxxxxx(换行),[1](输出第一行具体代码原文):作用是xxx(换行),[2](输出第二行具体代码原文):作用是xxx(换行),以此类推，注意结合目录路径去推测分析这段代码在整个项目中的作用，注意输出格式，注意序号后面首先跟每一行代码内容然后再输出作用，不要有任何别的东西，另外如果你发现了这是资料很多的知名项目，请在最后输出这段代码在整个项目里的作用，如果你确定的话。";
 
 
 
@@ -73,7 +72,14 @@ async function activate(context) {
 			vscode.window.showInformationMessage("不要一次提交太多请求喵呜！");
 			return;
 		}
-		GPTConfigure();
+
+		const apiToken = context.globalState.get('apiToken');
+		const orgCode = context.globalState.get('orgCode');
+
+		
+		//console.log(1111,apiToken, orgCode);
+		GPTConfigure(orgCode,apiToken);
+
 		const editor = vscode.window.activeTextEditor;
 		const selection = editor.selection;
 		let Text = ""
@@ -143,9 +149,15 @@ async function activate(context) {
 			vscode.window.showInformationMessage('生成完毕！');
 		} catch (error) {
 			if (error.response) {
-				//console.log(error.response.data.error);
-				vscode.window.showInformationMessage('api返回报错:[' + error.response.data.error.type + ']' + error.response.data.error.message);
+				console.log(error.response.data.error);
+				vscode.window.showInformationMessage('api返回报错:[' + error.response.data.error.type + ']' 
+				+ error.response.data.error.message + ", "
+				+ "[code]:" 
+				+ error.response.data.error.code);
 
+				if(error.response.data.error.code=="invalid_api_key"){
+					vscode.window.showInformationMessage('是不是apikey输错了?');
+				}
 			} else {
 				//console.log(error.response.data.error);
 
@@ -155,15 +167,17 @@ async function activate(context) {
 	});
 
 	let set_apitoken = vscode.commands.registerCommand('TellMeCode.set-apitoken', async function () {
-		process.env.OPENAI_KEY = await vscode.window.showInputBox({
+		var apiToken = await vscode.window.showInputBox({
 			prompt: 'Input Your OWN OPANAI_Token',
 		});
+		context.globalState.update('apiToken', apiToken);
 	})
 
 	let set_orgtoken = vscode.commands.registerCommand('TellMeCode.set-orgCode', async function () {
-		process.env.OPENAI_ORG = await vscode.window.showInputBox({
+		var orgCode = await vscode.window.showInputBox({
 			prompt: 'Input Your OWN OPANAI_ORG code',
 		});
+		context.globalState.update('orgCode', orgCode);
 	})
 
 	context.subscriptions.push(disposable);

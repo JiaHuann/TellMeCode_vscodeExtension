@@ -7,6 +7,12 @@
   "engines": {
     "vscode": "^1.78.0"
   },
+  "inputs": [
+    {
+      "id": "variableID",
+      "type": "type of input variable"
+    }
+  ],
   "icon": "icon.png",
   "publisher": "LiujiaHuan13",
   "categories": [
