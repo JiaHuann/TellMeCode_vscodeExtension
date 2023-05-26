@@ -61,7 +61,7 @@ async function activate(context) {
 		const apiToken = context.globalState.get('apiToken');
 		const orgCode = context.globalState.get('orgCode');
 		GPTConfigure(orgCode,apiToken);
-
+		console.log(apiToken, orgCode);
 
 		const editor = vscode.window.activeTextEditor;
 		const selection = editor.selection;
@@ -126,10 +126,11 @@ async function activate(context) {
 				]
 			});
 
-			//console.log(completion.data.choices[0].message.content);
+			console.log(completion.data.choices[0].message.content);
 
 			registerHoverProvider(completion.data.choices[0].message.content, selection);
 			vscode.window.showInformationMessage('生成完毕！');
+			busy = 0;
 		} catch (error) {
 			if (error.response) {
 				console.log(error.response.data.error);
@@ -141,12 +142,13 @@ async function activate(context) {
 				if(error.response.data.error.code=="invalid_api_key"){
 					vscode.window.showInformationMessage('是不是apikey输错了?');
 				}
+				busy = 0;
 			} else {
 				//console.log(error.response.data.error);
 
 			}
 		}
-		busy = 0;
+		
 	});
 
 	//设置apiToken
