@@ -120,9 +120,10 @@ async function activate(context) {
 					{ "role": "user", "content": "这段代码的路径是" + `${FolderName}\\${relativeFilePath}` + "代码如下:" + `${Text}` }
 				]
 			});
-			
+
 			const timeoutPromise = new Promise((resolve, reject) => {
 				setTimeout(() => {
+					vscode.window.showInformationMessage("超时了？是不是网络环境有问题？");
 					reject(new Error("Operation timed out."));
 				}, TIMEOUT_MS);
 			});
@@ -136,12 +137,9 @@ async function activate(context) {
 			vscode.window.showInformationMessage('生成完毕！');
 			busy = 0;
 		} catch (error) {
-			busy = 0;
-			//超时处理
-			if (error instanceof Error && error.message === 'Operation timed out.')
-				vscode.window.showInformationMessage("选中文本为空！");
 
-			//console.log(error.response.data.error);
+			busy = 0;
+			vscode.window.showInformationMessage(error.message);
 			vscode.window.showInformationMessage('api返回报错:[' + error.response.data.error.type + ']'
 				+ error.response.data.error.message + ", "
 				+ "[code]:"
@@ -151,8 +149,6 @@ async function activate(context) {
 				vscode.window.showInformationMessage('是不是apikey输错了?');
 			}
 		}
-
-
 	});
 
 	//设置apiToken
