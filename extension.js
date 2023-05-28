@@ -3,9 +3,11 @@
 const vscode = require('vscode');
 const { Configuration, OpenAIApi } = require("openai");
 
-
 let disposable;
 let configuration, openai;
+const TIMEOUT_MS = 40000;		//超时响应
+var busy = 0;					//一次只能提交一个
+const prompt = "你是一个叫TellMeCode的机器人,请你结合我发送的代码路径,分析我给你发的具体的代码,以这样的格式输出:整体作用:xxxxxx(换行),[1](输出第一行具体代码原文):作用是xxx(换行),[2](输出第二行具体代码原文):作用是xxx(换行),以此类推，注意结合目录路径去推测分析这段代码在整个项目中的作用，注意输出格式，注意序号后面首先跟每一行代码内容然后再输出作用，不要有任何别的东西，另外如果你发现了这是资料很多的知名项目，请在最后输出这段代码在整个项目里的作用，如果你确定的话。";
 
 //配置GPT
 function GPTConfigure(orgCode, apiToken) {
@@ -34,11 +36,6 @@ function registerHoverProvider(textt, selection) {
 	});
 }
 
-//一次只能提交一个
-var busy = 0;
-const prompt = "你是一个叫TellMeCode的机器人,请你结合我发送的代码路径,分析我给你发的具体的代码,以这样的格式输出:整体作用:xxxxxx(换行),[1](输出第一行具体代码原文):作用是xxx(换行),[2](输出第二行具体代码原文):作用是xxx(换行),以此类推，注意结合目录路径去推测分析这段代码在整个项目中的作用，注意输出格式，注意序号后面首先跟每一行代码内容然后再输出作用，不要有任何别的东西，另外如果你发现了这是资料很多的知名项目，请在最后输出这段代码在整个项目里的作用，如果你确定的话。";
-
-
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -60,14 +57,14 @@ async function activate(context) {
 
 		const apiToken = context.globalState.get('apiToken');
 		const orgCode = context.globalState.get('orgCode');
-		GPTConfigure(orgCode,apiToken);
-		console.log(apiToken, orgCode);
+		GPTConfigure(orgCode, apiToken);
+		//console.log(apiToken, orgCode);
 
 		const editor = vscode.window.activeTextEditor;
 		const selection = editor.selection;
 		let Text = ""
 
-		
+
 		//获取 选中代码相对于项目文件夹路径（包含）
 		try {
 			// 获取当前选中文本所在文件的路径
@@ -105,19 +102,17 @@ async function activate(context) {
 		const start = selection.start;
 		const end = selection.end;
 		const selectedText = editor.document.getText(new vscode.Range(start, end));
-		//console.log(selectedText);
 		if (!selectedText) {
 			vscode.window.showInformationMessage("选中文本为空！");
 			return;
 		}
 		Text = selectedText;
 
+		//console.log(Text);
+
 		//发送请求
 		try {
-			//console.log(Text);
-			registerHoverProvider("Loading...稍等片刻喵~", selection);
-			busy = 1;
-			const completion = await openai.createChatCompletion({
+			const completionPromise = openai.createChatCompletion({
 				model: "gpt-3.5-turbo",
 				max_tokens: 1000,
 				messages: [
@@ -125,30 +120,39 @@ async function activate(context) {
 					{ "role": "user", "content": "这段代码的路径是" + `${FolderName}\\${relativeFilePath}` + "代码如下:" + `${Text}` }
 				]
 			});
+			
+			const timeoutPromise = new Promise((resolve, reject) => {
+				setTimeout(() => {
+					reject(new Error("Operation timed out."));
+				}, TIMEOUT_MS);
+			});
 
-			console.log(completion.data.choices[0].message.content);
+			busy = 1;
+			registerHoverProvider("Loading...稍等片刻喵~", selection);
+			const completion = await Promise.race([completionPromise, timeoutPromise]);
+			//console.log(completion.data.choices[0].message.content);
 
 			registerHoverProvider(completion.data.choices[0].message.content, selection);
 			vscode.window.showInformationMessage('生成完毕！');
 			busy = 0;
 		} catch (error) {
-			if (error.response) {
-				console.log(error.response.data.error);
-				vscode.window.showInformationMessage('api返回报错:[' + error.response.data.error.type + ']' 
+			busy = 0;
+			//超时处理
+			if (error instanceof Error && error.message === 'Operation timed out.')
+				vscode.window.showInformationMessage("选中文本为空！");
+
+			//console.log(error.response.data.error);
+			vscode.window.showInformationMessage('api返回报错:[' + error.response.data.error.type + ']'
 				+ error.response.data.error.message + ", "
-				+ "[code]:" 
+				+ "[code]:"
 				+ error.response.data.error.code);
 
-				if(error.response.data.error.code=="invalid_api_key"){
-					vscode.window.showInformationMessage('是不是apikey输错了?');
-				}
-				busy = 0;
-			} else {
-				//console.log(error.response.data.error);
-
+			if (error.response.data.error.code == "invalid_api_key") {
+				vscode.window.showInformationMessage('是不是apikey输错了?');
 			}
 		}
-		
+
+
 	});
 
 	//设置apiToken
