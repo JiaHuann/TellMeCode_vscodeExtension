@@ -38,3 +38,7 @@
 mail:cheayuki13@gmail.com
 
 QQ:1395622672
+<a href="https://scan.coverity.com/projects/jiahuann-tellmecode_vscodeextension">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/29644/badge.svg"/>
+</a>
